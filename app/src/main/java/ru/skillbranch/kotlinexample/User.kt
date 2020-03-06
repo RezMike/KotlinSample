@@ -76,8 +76,10 @@ class User private constructor(
         check(!email.isNullOrBlank() || !rawPhone.isNullOrBlank()) { "Email or phone must be not blank" }
 
         phone = rawPhone?.replace("[^+\\d]".toRegex(), "")
-        if (phone?.contains("\\+\\d{11}".toRegex()) == false)
-            throw IllegalArgumentException("Enter a valid phone number starting with a + and containing 11 digits")
+        phone?.let {
+            if (!it.matches("\\+\\d{11}".toRegex()) || rawPhone!!.contains("[A-Za-z]".toRegex()))
+                throw IllegalArgumentException("Enter a valid phone number starting with a + and containing 11 digits")
+        }
 
         login = email ?: phone!!
 
