@@ -1,8 +1,9 @@
 package ru.skillbranch.kotlinexample
 
+import androidx.annotation.VisibleForTesting
 import java.lang.IllegalArgumentException
 
-class UserHolder {
+object UserHolder {
     private val map = mutableMapOf<String, User>()
 
     fun registerUser(
@@ -11,29 +12,42 @@ class UserHolder {
         password: String
     ): User {
         return User.makeUser(fullName, email = email, password = password)
-            .also { user -> map[user.login] = user }
+            .also { user ->
+                if (map.containsKey(user.login))
+                    throw IllegalArgumentException("A user with this phone already exists")
+                map[user.login] = user
+            }
     }
 
     fun registerUserByPhone(
         fullName: String,
         rawPhone: String
     ): User {
-        if (map.containsKey(rawPhone))
-            throw IllegalArgumentException("A user with this phone already exists")
-
         return User.makeUser(fullName, phone = rawPhone)
-            .also { user -> map[user.login] = user }
+            .also { user ->
+                if (map.containsKey(user.login))
+                    throw IllegalArgumentException("A user with this phone already exists")
+                map[user.login] = user
+            }
     }
 
     fun loginUser(login: String, password: String): String? {
-        return map[login.trim()]?.run {
+        return map[correctLogin(login)]?.run {
             if (checkPassword(password)) this.userInfo
             else null
         }
     }
 
+    private fun correctLogin(login: String): String {
+        return login.trim().let {
+            if (it.matches("^\\+\\d.*".toRegex()))
+                it.replace("[^+\\d]".toRegex(), "")
+            else it
+        }
+    }
+
     fun requestAccessCode(login: String) {
-        map[login]?.updateAccessCode()
+        map[correctLogin(login)]?.updateAccessCode()
     }
 
     fun importUsers(list: List<String>): List<User> = list.map { str ->
@@ -65,5 +79,10 @@ class UserHolder {
                 )
             }
         }
+    }
+
+    @VisibleForTesting(otherwise = VisibleForTesting.NONE)
+    fun clearHolder() {
+        map.clear()
     }
 }

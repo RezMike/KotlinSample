@@ -73,12 +73,12 @@ class User private constructor(
         if (salt == null)
             salt = ByteArray(16).also { SecureRandom().nextBytes(it) }.toString()
         check(!firstName.isBlank()) { "FirstName must be not blank" }
-        check(!email.isNullOrBlank() || rawPhone.isNullOrBlank()) { "Email or phone must be not blank" }
+        check(!email.isNullOrBlank() || !rawPhone.isNullOrBlank()) { "Email or phone must be not blank" }
 
-        if (rawPhone?.contains("[^+\\d]".toRegex()) == true)
+        phone = rawPhone?.replace("[^+\\d]".toRegex(), "")
+        if (phone?.contains("\\+\\d{11}".toRegex()) == false)
             throw IllegalArgumentException("Enter a valid phone number starting with a + and containing 11 digits")
 
-        phone = rawPhone
         login = email ?: phone!!
 
         userInfo = """
