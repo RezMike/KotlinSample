@@ -77,7 +77,8 @@ class User private constructor(
 
         phone = rawPhone?.replace("[^+\\d]".toRegex(), "")
         phone?.let {
-            if (!it.matches("\\+\\d{11}".toRegex()) || rawPhone!!.contains("[A-Za-z]".toRegex()))
+            //if (!it.matches("\\+\\d{11}".toRegex()) || rawPhone!!.contains("[A-Za-z]".toRegex()))
+            if (!rawPhone!!.matches("[+][\\d()\\-\\s]{11,}".toRegex()) || !it.matches("[+]+\\d{11}".toRegex()))
                 throw IllegalArgumentException("Enter a valid phone number starting with a + and containing 11 digits")
         }
 
